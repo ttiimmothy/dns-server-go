@@ -30,24 +30,32 @@ func main() {
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
 
-		header := Header{
-			ID:      1234,
-			QR:      1,
-			OPCODE:  0,
-			AA:      0,
-			TC:      0,
-			RD:      0,
-			RA:      0,
-			Z:       0,
-			RCODE:   0,
-			QDCOUNT: 0,
-			ANCOUNT: 0,
-			NSCOUNT: 0,
-			ARCOUNT: 0,
+		message := Message{
+			header: Header{
+				ID:      1234,
+				QR:      1,
+				OPCODE:  0,
+				AA:      0,
+				TC:      0,
+				RD:      0,
+				RA:      0,
+				Z:       0,
+				RCODE:   0,
+				QDCOUNT: 1,
+				ANCOUNT: 0,
+				NSCOUNT: 0,
+				ARCOUNT: 0,
+			},
+			questions: []Question{
+				{
+					Name:  "codecrafters.io",
+					Type:  1,
+					Class: 1,
+				},
+			},
 		}
 
-		response := header.Tobytes()
-
+		response := message.MarshalBinary()
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			fmt.Println("Failed to send response:", err)
