@@ -1,5 +1,7 @@
 [![progress-banner](https://backend.codecrafters.io/progress/dns-server/79f0b411-29c2-4e7d-ad8a-01a8b699a0d0)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
+# DNS Server Go
+
 This is a starting point for Go solutions to the
 ["Build Your Own DNS server" Challenge](https://app.codecrafters.io/courses/dns-server/overview).
 
@@ -31,7 +33,11 @@ Time to move on to the next stage!
 Note: This section is for stages 2 and beyond.
 
 1. Ensure you have `go (1.19)` installed locally
-1. Run `./your_server.sh` to run your program, which is implemented in
+2. Run `./your_server.sh` to run your program, which is implemented in
    `app/main.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
+3. Commit your changes and run `git push origin master` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
+
+## License
+
+DNS Server Go is licensed under [GNU General Public License v3.0](LICENSE).
