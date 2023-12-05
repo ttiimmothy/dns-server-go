@@ -42,7 +42,7 @@ func main() {
 				Z:       0,
 				RCODE:   0,
 				QDCOUNT: 1,
-				ANCOUNT: 0,
+				ANCOUNT: 1,
 				NSCOUNT: 0,
 				ARCOUNT: 0,
 			},
@@ -53,9 +53,19 @@ func main() {
 					Class: 1,
 				},
 			},
+			answer: []ResourceRecord{
+				{
+					Name:   "codecrafters.io",
+					Type:   1,
+					Class:  1,
+					TTL:    60,
+					Length: 4,
+					Data:   []byte{8, 8, 8, 8},
+				},
+			},
 		}
 
-		response := message.MarshalBinary()
+		response := message.DNSBinary()
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			fmt.Println("Failed to send response:", err)

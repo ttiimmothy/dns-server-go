@@ -18,7 +18,7 @@ type Header struct {
 	ARCOUNT uint16
 }
 
-func (h *Header) MarshalBinary() (data []byte) {
+func (h *Header) DNSBinary() (data []byte) {
 	data = make([]byte, 12)
 	binary.BigEndian.PutUint16(data[0:], h.ID)
 	binary.BigEndian.PutUint16(data[2:],

@@ -11,7 +11,7 @@ type Question struct {
 	Class uint16
 }
 
-func (q *Question) MarshalBinary() (data []byte) {
+func (q *Question) DNSBinary() (data []byte) {
 	labels := strings.Split(q.Name, ".")
 	data = make([]byte, 0, len(q.Name)+len(labels)+4)
 	for _, label := range labels {
