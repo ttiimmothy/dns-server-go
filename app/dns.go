@@ -38,18 +38,18 @@ func (h *Header) DNSBinary() (data []byte) {
 	return
 }
 
-func (h *Header) DNSBinaryByte(data []byte) {
-	h.ID = binary.BigEndian.Uint16(data[:2])
-	h.QR = data[2] >> 7 & 1
-	h.OPCODE = data[2] >> 3 & 7
-	h.AA = data[2] >> 2 & 1
-	h.TC = data[2] >> 1 & 1
-	h.RD = data[2] & 1
-	h.RA = data[3] >> 7 & 1
-	h.Z = data[3] >> 4 & 7
-	h.RCODE = data[3] & 15
-	h.QDCOUNT = binary.BigEndian.Uint16(data[4:6])
-	h.ANCOUNT = binary.BigEndian.Uint16(data[6:8])
-	h.NSCOUNT = binary.BigEndian.Uint16(data[8:10])
-	h.ARCOUNT = binary.BigEndian.Uint16(data[10:12])
+func (h *Header) DNSBinaryByte(data *[]byte) {
+	h.ID = binary.BigEndian.Uint16((*data)[:2])
+	h.QR = (*data)[2] >> 7 & 1
+	h.OPCODE = (*data)[2] >> 3 & 7
+	h.AA = (*data)[2] >> 2 & 1
+	h.TC = (*data)[2] >> 1 & 1
+	h.RD = (*data)[2] & 1
+	h.RA = (*data)[3] >> 7 & 1
+	h.Z = (*data)[3] >> 4 & 7
+	h.RCODE = (*data)[3] & 15
+	h.QDCOUNT = binary.BigEndian.Uint16((*data)[4:])
+	h.ANCOUNT = binary.BigEndian.Uint16((*data)[6:])
+	h.NSCOUNT = binary.BigEndian.Uint16((*data)[8:])
+	h.ARCOUNT = binary.BigEndian.Uint16((*data)[10:])
 }

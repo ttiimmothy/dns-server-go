@@ -40,6 +40,34 @@ func main() {
 			}
 			return
 		}
+
+		respondedQuestions := func(receivedQuestions []Question) (respondedQuestions []Question) {
+			respondedQuestions = make([]Question, len(receivedQuestions))
+			for i := range receivedQuestions {
+				respondedQuestions[i] = Question{
+					Name:  receivedQuestions[i].Name,
+					Type:  1,
+					Class: 1,
+				}
+			}
+			return
+		}
+
+		respondedAnswer := func(receivedQuestions []Question) (respondedAnswer []ResourceRecord) {
+			respondedAnswer = make([]ResourceRecord, len(receivedQuestions))
+			for i := range receivedQuestions {
+				respondedAnswer[i] = ResourceRecord{
+					Name:   receivedQuestions[i].Name,
+					Type:   1,
+					Class:  1,
+					TTL:    60,
+					Length: 4,
+					Data:   []byte{8, 8, 8, 8},
+				}
+			}
+			return
+		}
+
 		respondedMessage := Message{
 			header: Header{
 				ID:      receivedMessage.header.ID,
@@ -51,28 +79,13 @@ func main() {
 				RA:      0,
 				Z:       0,
 				RCODE:   RCODEfromOPCODE(receivedMessage.header.OPCODE),
-				QDCOUNT: 1,
-				ANCOUNT: 1,
+				QDCOUNT: receivedMessage.header.QDCOUNT,
+				ANCOUNT: receivedMessage.header.QDCOUNT,
 				NSCOUNT: 0,
 				ARCOUNT: 0,
 			},
-			questions: []Question{
-				{
-					Name:  "codecrafters.io",
-					Type:  1,
-					Class: 1,
-				},
-			},
-			answer: []ResourceRecord{
-				{
-					Name:   "codecrafters.io",
-					Type:   1,
-					Class:  1,
-					TTL:    60,
-					Length: 4,
-					Data:   []byte{8, 8, 8, 8},
-				},
-			},
+			questions: respondedQuestions(receivedMessage.questions),
+			answer:    respondedAnswer(receivedMessage.questions),
 		}
 
 		response := respondedMessage.DNSBinary()
