@@ -18,5 +18,9 @@ func (m *Message) DNSBinary() (data []byte) {
 }
 
 func (m *Message) DNSBinaryByte(data []byte) {
-	m.header.DNSBinaryByte(data[:12])
+	m.header.DNSBinaryByte(&data)
+	m.questions = make([]Question, m.header.QDCOUNT)
+	for i := range m.questions {
+		m.questions[i].DNSBinaryByte(&data)
+	}
 }
