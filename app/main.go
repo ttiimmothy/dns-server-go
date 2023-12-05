@@ -30,17 +30,27 @@ func main() {
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
 
-		message := Message{
+		receivedMessage := Message{}
+		receivedMessage.DNSBinaryByte(buf)
+		RCODEfromOPCODE := func(OPCODE byte) (RCODE byte) {
+			if OPCODE == 0 {
+				RCODE = 0
+			} else {
+				RCODE = 4
+			}
+			return
+		}
+		respondedMessage := Message{
 			header: Header{
-				ID:      1234,
+				ID:      receivedMessage.header.ID,
 				QR:      1,
-				OPCODE:  0,
+				OPCODE:  receivedMessage.header.OPCODE,
 				AA:      0,
 				TC:      0,
-				RD:      0,
+				RD:      receivedMessage.header.RD,
 				RA:      0,
 				Z:       0,
-				RCODE:   0,
+				RCODE:   RCODEfromOPCODE(receivedMessage.header.OPCODE),
 				QDCOUNT: 1,
 				ANCOUNT: 1,
 				NSCOUNT: 0,
@@ -65,7 +75,7 @@ func main() {
 			},
 		}
 
-		response := message.DNSBinary()
+		response := respondedMessage.DNSBinary()
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			fmt.Println("Failed to send response:", err)

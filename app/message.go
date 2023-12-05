@@ -16,3 +16,7 @@ func (m *Message) DNSBinary() (data []byte) {
 	}
 	return
 }
+
+func (m *Message) DNSBinaryByte(data []byte) {
+	m.header.DNSBinaryByte(data[:12])
+}
