@@ -2,11 +2,13 @@
   "cSpell.words": [
     "ANCOUNT",
     "ARCOUNT",
-    "codecrafters",
-    "Crafters",
+    "IQUERY",
     "NSCOUNT",
+    "QCLASS",
     "QDCOUNT",
+    "QTYPE",
     "RCODE",
-    "Tobytes"
+    "RDATA",
+    "RDLENGTH"
   ]
 }

@@ -1,52 +1,31 @@
 package main
 
-import (
-	"encoding/binary"
-	"strings"
+type QTYPE uint16
+
+const (
+	QTYPE_A QTYPE = 1
+)
+
+type QCLASS uint16
+
+const (
+	QCLASS_IN QCLASS = 1
 )
 
 type Question struct {
-	Name  string
-	Type  uint16
-	Class uint16
+	Name  []string
+	Type  QTYPE
+	Class QCLASS
 }
 
-func (q *Question) DNSBinary() (data []byte) {
-	labels := strings.Split(q.Name, ".")
-	data = make([]byte, 0, len(q.Name)+len(labels)+4)
-	for _, label := range labels {
-		data = append(data, byte(len(label)))
-		data = append(data, []byte(label)...)
+func (question *Question) ToBytes() []byte {
+	var bytes []byte
+	for _, label := range question.Name {
+		bytes = append(bytes, byte(len(label)))
+		bytes = append(bytes, []byte(label)...)
 	}
-	data = append(data, byte('\x00'))
-	data = binary.BigEndian.AppendUint16(data, q.Type)
-	data = binary.BigEndian.AppendUint16(data, q.Class)
-	return
-}
-
-func (q *Question) DNSBinaryByte(data *[]byte) {
-	var i, dataLen int
-	flag := false
-	tmpName := []byte{}
-	for i, dataLen = 0, len(*data); i < dataLen; {
-		length := (*data)[i]
-		i++
-		if length == 0 {
-			q.Name = string(tmpName)
-			break
-		}
-		if flag {
-			tmpName = append(tmpName, byte('.'))
-		}
-		flag = true
-		for j := byte(0); j < length; j++ {
-			tmpName = append(tmpName, (*data)[i])
-			i++
-		}
-	}
-	q.Type = binary.BigEndian.Uint16((*data)[i:])
-	i += 2
-	q.Class = binary.BigEndian.Uint16((*data)[i:])
-	i += 2
-	*data = (*data)[i:]
+	bytes = append(bytes, 0)
+	bytes = append(bytes, Uint16ToBytes(uint16(question.Type))...)
+	bytes = append(bytes, Uint16ToBytes(uint16(question.Class))...)
+	return bytes
 }
