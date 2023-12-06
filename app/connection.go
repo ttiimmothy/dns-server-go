@@ -17,6 +17,7 @@ func NewConnection(address string) (Connection, error) {
 	}
 	return Connection{address: *udpAddr}, nil
 }
+
 func (connection *Connection) ListenToMessages(handler func(Message) Message) {
 	udpConn, err := net.ListenUDP("udp", &connection.address)
 	if err != nil {
