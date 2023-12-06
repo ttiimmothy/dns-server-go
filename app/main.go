@@ -1,97 +1,121 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
+	"time"
 )
 
+func answerQuestions(message Message, resolverConnection net.Conn, resolverAddress *net.UDPAddr, resolverAddrString string) []ResourceRecord {
+	var answers []ResourceRecord
+	for _, question := range message.Questions {
+		if resolverAddrString != "" {
+			resolverMessage := Message{
+				Header: Header{
+					ID:                  message.Header.ID,
+					QR:                  0,
+					OperationCode:       OPCODE_QUERY,
+					AuthoritativeAnswer: 0,
+					Truncation:          0,
+					RecursionDesired:    0,
+					RecursionAvailable:  0,
+					ResponseCode:        RCODE_OK,
+				},
+				Questions: []Question{question},
+			}
+			fmt.Println("Request message:", resolverMessage)
+			resolverConnection.Write(resolverMessage.ToBytes())
+			deadline := time.Now().Add(15 * time.Second)
+			resolverConnection.SetReadDeadline(deadline)
+			buf := make([]byte, 512)
+			_, err := resolverConnection.Read(buf)
+
+			if err != nil {
+				fmt.Println("Error receiving data:", err)
+				break
+			}
+
+			var resolverResponse = ParseDNSMessage(buf)
+			fmt.Println("Response:", resolverResponse)
+
+			if len(resolverResponse.Answers) != 0 {
+				for _, answer := range resolverResponse.Answers {
+					fmt.Println("Answer:", answer.RDATA)
+					answers = append(answers,
+						ResourceRecord{
+							Name:     question.Name,
+							Type:     RR_TYPE_A,
+							Class:    RR_CLASS_IN,
+							TTL:      10,
+							RDLENGTH: 4,
+							RDATA:    answer.RDATA,
+						},
+					)
+				}
+			} else {
+				answers = append(answers,
+					ResourceRecord{
+						Name:     question.Name,
+						Type:     RR_TYPE_A,
+						Class:    RR_CLASS_IN,
+						TTL:      10,
+						RDLENGTH: 4,
+						RDATA:    "8888",
+					},
+				)
+			}
+		} else {
+			answers = append(answers,
+				ResourceRecord{
+					Name:     question.Name,
+					Type:     RR_TYPE_A,
+					Class:    RR_CLASS_IN,
+					TTL:      10,
+					RDLENGTH: 4,
+					RDATA:    "8888",
+				},
+			)
+		}
+	}
+	return answers
+}
+
+func buildMessageHandler(resolverAddr net.UDPAddr, resolverConnection net.Conn, resolverAddrString string) func(Message) Message {
+	return func(message Message) Message {
+		var response Message
+		switch message.Header.OperationCode {
+		case OPCODE_QUERY:
+			response = message.GenerateResponseMessage(
+				RCODE_OK,
+				message.Questions,
+				answerQuestions(message, resolverConnection, &resolverAddr, resolverAddrString))
+		default:
+			response = message.GenerateResponseMessage(RCODE_NOT_IMPLEMENTED, []Question{}, []ResourceRecord{})
+		}
+
+		return response
+	}
+}
+
 func main() {
-	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:2053")
+	connection, err := NewConnection("127.0.0.1:2053")
 	if err != nil {
 		fmt.Println("Failed to resolve UDP address:", err)
 		return
 	}
-
-	udpConn, err := net.ListenUDP("udp", udpAddr)
+	resolverAddrString := flag.String("resolver", "", "DNS resolver")
+	flag.Parse()
+	var str = string(*resolverAddrString)
+	fmt.Println("Resolver addreess: ", str)
+	resolverAddr, err := net.ResolveUDPAddr("udp", str)
+	if err != nil {
+		fmt.Println("Failed to resolve UDP address:", err)
+	}
+	resolverConnection, err := net.Dial("udp", str)
 	if err != nil {
 		fmt.Println("Failed to bind to address:", err)
-		return
 	}
-	defer udpConn.Close()
-
-	buf := make([]byte, 512)
-	for {
-		size, source, err := udpConn.ReadFromUDP(buf)
-		if err != nil {
-			fmt.Println("Error receiving data:", err)
-			break
-		}
-
-		receivedData := string(buf[:size])
-		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
-
-		receivedMessage := Message{}
-		receivedMessage.DNSBinaryByte(buf)
-		RCODEfromOPCODE := func(OPCODE byte) (RCODE byte) {
-			if OPCODE == 0 {
-				RCODE = 0
-			} else {
-				RCODE = 4
-			}
-			return
-		}
-
-		respondedQuestions := func(receivedQuestions []Question) (respondedQuestions []Question) {
-			respondedQuestions = make([]Question, len(receivedQuestions))
-			for i := range receivedQuestions {
-				respondedQuestions[i] = Question{
-					Name:  receivedQuestions[i].Name,
-					Type:  1,
-					Class: 1,
-				}
-			}
-			return
-		}
-
-		respondedAnswer := func(receivedQuestions []Question) (respondedAnswer []ResourceRecord) {
-			respondedAnswer = make([]ResourceRecord, len(receivedQuestions))
-			for i := range receivedQuestions {
-				respondedAnswer[i] = ResourceRecord{
-					Name:   receivedQuestions[i].Name,
-					Type:   1,
-					Class:  1,
-					TTL:    60,
-					Length: 4,
-					Data:   []byte{8, 8, 8, 8},
-				}
-			}
-			return
-		}
-
-		respondedMessage := Message{
-			header: Header{
-				ID:      receivedMessage.header.ID,
-				QR:      1,
-				OPCODE:  receivedMessage.header.OPCODE,
-				AA:      0,
-				TC:      0,
-				RD:      receivedMessage.header.RD,
-				RA:      0,
-				Z:       0,
-				RCODE:   RCODEfromOPCODE(receivedMessage.header.OPCODE),
-				QDCOUNT: receivedMessage.header.QDCOUNT,
-				ANCOUNT: receivedMessage.header.QDCOUNT,
-				NSCOUNT: 0,
-				ARCOUNT: 0,
-			},
-			questions: respondedQuestions(receivedMessage.questions),
-			answer:    respondedAnswer(receivedMessage.questions),
-		}
-
-		response := respondedMessage.DNSBinary()
-		_, err = udpConn.WriteToUDP(response, source)
-		if err != nil {
-			fmt.Println("Failed to send response:", err)
-		}
-	}
+	defer resolverConnection.Close()
+	connection.ListenToMessages(buildMessageHandler(*resolverAddr, resolverConnection, str))
 }
