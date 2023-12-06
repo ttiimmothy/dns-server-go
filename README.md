@@ -1,6 +1,7 @@
 [![progress-banner](https://backend.codecrafters.io/progress/dns-server/79f0b411-29c2-4e7d-ad8a-01a8b699a0d0)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
 # DNS Server Go
+[![ci](https://github.com/ttiimmothy/dns-server-go/actions/workflows/ci.yml/badge.svg)](https://github.com/ttiimmothy/dns-server-go/actions/workflows/ci.yml)
 
 This is a starting point for Go solutions to the
 ["Build Your Own DNS server" Challenge](https://app.codecrafters.io/courses/dns-server/overview).
