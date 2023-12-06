@@ -1,3 +1,4 @@
+[![progress-banner](https://backend.codecrafters.io/progress/grep/28176ce0-63c3-4817-aa12-e6df9c6ea2f8)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 [![progress-banner](https://backend.codecrafters.io/progress/dns-server/79f0b411-29c2-4e7d-ad8a-01a8b699a0d0)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
 # DNS Server Go
